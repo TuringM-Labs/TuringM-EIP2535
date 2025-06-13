@@ -1,5 +1,5 @@
 # TuringM-EIP2535
-
+<!-- 
 [![Version][version-badge]][version-link]
 [![License][license-badge]][license-link]
 [![Test][ci-badge]][ci-link]
@@ -9,7 +9,7 @@
 [license-badge]: https://img.shields.io/github/license/turingm-eip2535
 [license-link]: https://github.com/turingm-eip2535/blob/main/LICENSE.md
 [ci-badge]: https://github.com/turingm-eip2535/actions/workflows/Tests.yml/badge.svg
-[ci-link]: https://github.com/turingm-eip2535/actions/workflows/Tests.yml
+[ci-link]: https://github.com/turingm-eip2535/actions/workflows/Tests.yml -->
 
 ## Background
 
