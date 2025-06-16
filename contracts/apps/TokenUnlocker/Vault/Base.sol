@@ -54,6 +54,10 @@ abstract contract VaultBase is AppStorage, IVaultBase, UserNonceBase, EIP712Base
         }
         address userAddress = allocateParams.userAddress;
         uint256 allocationAmount = allocateParams.tokenAmount;
+        bool isShareRevenue = allocateParams.isShareRevenue;
+        if (isShareRevenue) {
+            require(vault.canShareRevenue, "can not share revenue");
+        }
 
         UnlockedSchedule memory schedule = UnlockedSchedule({
             vaultId: vaultId,
@@ -63,7 +67,7 @@ abstract contract VaultBase is AppStorage, IVaultBase, UserNonceBase, EIP712Base
             startTime: startTime,
             duration: vault.unlockedDuration,
             paymentAmount: allocateParams.paymentAmount,
-            isShareProfit: vault.isShareProfit,
+            isShareRevenue: isShareRevenue,
             canRefund: allocateParams.canRefund,
             canRefundDuration: allocateParams.canRefundDuration,
             hasRefunded: false

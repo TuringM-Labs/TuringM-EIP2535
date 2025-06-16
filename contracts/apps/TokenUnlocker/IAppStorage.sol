@@ -19,7 +19,7 @@ interface IAppStorage {
         // for payout
         uint256 totalPayout; // vault direct payout, only for payout vault type, not for vc or linearUnlocked
         // for vc
-        bool isShareProfit; // Is it the token share of the profit that vc invested in?
+        bool canShareRevenue; // Is it the token share of the profit that vc invested in?
         // This is only the starting point of the calculation time, not the starting point of the unlocking time.
         // The starting point of the unlocking time is this time + 365 days
         uint256 unlockedSince;
@@ -41,6 +41,7 @@ interface IAppStorage {
         address userAddress;
         uint256 tokenAmount;
         uint256 paymentAmount;
+        bool isShareRevenue;
         bool canRefund;
         uint256 canRefundDuration;
         uint256 nonce;
@@ -54,7 +55,7 @@ interface IAppStorage {
         uint256 startTime;
         uint256 duration;
         uint256 paymentAmount;
-        bool isShareProfit; // whether it is the token share of profit that vc invested
+        bool isShareRevenue; // whether it is the token share of profit that vc invested
         bool canRefund;
         uint256 canRefundDuration;
         bool hasRefunded;
