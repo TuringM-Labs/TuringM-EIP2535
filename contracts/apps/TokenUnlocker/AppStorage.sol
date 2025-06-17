@@ -12,7 +12,8 @@ contract AppStorage is IAppStorage {
         mapping(address => uint256[]) userUnlockedScheduleIdsMap; // user => scheduleId[]: All unlock plans for the user
         mapping(address => uint256) userInvestAmount; // user => amount: The total amount of user's cumulative investment
         mapping(address => uint256) userBalance; // user => balance: The user's balance in the token management contract
-        mapping(address => uint256) userShareProfitBalance; // user => balance: The user's shareable profit balance in the token management contract will decrease as the user claims
+        mapping(address => uint256) userShareRevenueBalance; // user => balance: The user's shareable profit balance in the token management contract will decrease as the user claims
+        uint256 totalShareRevenueAmount;
         uint256 totalInvestTokenAmount; // The total number of tokens invested by all users is used to calculate the proportion of profits that users can share
         mapping(address => uint256) withdrawablePaymentTokenMap; // paymentTokenAddress => balance: how much payment token can be withdrawn by admin
         // staking
@@ -42,11 +43,11 @@ contract AppStorage is IAppStorage {
         );
     bytes32 constant TYPEHASH_INVEST_USER =
         keccak256(
-            "InvestUser(uint256 vaultId,address userAddress,uint256 tokenAmount,uint256 paymentAmount,bool canRefund,uint256 canRefundDuration,uint256 nonce)"
+            "InvestUser(uint256 vaultId,address userAddress,uint256 tokenAmount,uint256 paymentAmount,bool isShareRevenue,bool canRefund,uint256 canRefundDuration,uint256 nonce)"
         );
     bytes32 constant TYPEHASH_INVEST_OPERATOR =
         keccak256(
-            "InvestOperator(uint256 vaultId,address userAddress,uint256 tokenAmount,uint256 paymentAmount,bool canRefund,uint256 canRefundDuration,uint256 nonce)"
+            "InvestOperator(uint256 vaultId,address userAddress,uint256 tokenAmount,uint256 paymentAmount,bool isShareRevenue,bool canRefund,uint256 canRefundDuration,uint256 nonce)"
         );
     bytes32 constant TYPEHASH_STAKE = keccak256("Stake(address userAddress,address tokenAddress,uint256 amount,uint256 nonce)");
     bytes32 constant TYPEHASH_UNSTAKE = keccak256("Unstake(uint256 scheduleIndex,uint256 nonce)");

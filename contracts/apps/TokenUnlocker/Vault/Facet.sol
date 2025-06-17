@@ -42,12 +42,12 @@ contract VaultFacet is IVaultFacet, VaultBase, AccessControlBase, TTOQManagerBas
 
     function createVault(Vault memory vault_) external whenNotPaused protected nonReentrant returns (uint256 vaultId) {
         address paymentTokenAddress = address(0);
-        bool isShareProfit = false;
+        bool canShareRevenue = false;
         if (vault_.vaultType == VaultType.Vc) {
             // TODO: use a whiteList payment token address?
             require(vault_.paymentTokenAddress != address(0), "Invalid payment token address");
             paymentTokenAddress = vault_.paymentTokenAddress;
-            isShareProfit = true;
+            canShareRevenue = true;
         }
         Vault memory vault = Vault({
             name: vault_.name,
@@ -60,7 +60,7 @@ contract VaultFacet is IVaultFacet, VaultBase, AccessControlBase, TTOQManagerBas
             // payout
             totalPayout: 0, // How many tokens are spent
             // vc
-            isShareProfit: isShareProfit, // Is it the token share of the profit that vc invested in
+            canShareRevenue: canShareRevenue, // Is it the token share of the profit that vc invested in
             unlockedSince: vault_.unlockedSince, // This is just the calculation time starting point, not the unlocking time starting point. The unlocking time starting point is this time + 365 days
             unlockedDuration: vault_.unlockedDuration, // 365*4 days;
             paymentTokenAddress: paymentTokenAddress, // Payment token address, only for Vc vault type
@@ -95,6 +95,7 @@ contract VaultFacet is IVaultFacet, VaultBase, AccessControlBase, TTOQManagerBas
         uint256 tokenAmount = allocateParams.tokenAmount;
         uint256 paymentAmount = allocateParams.paymentAmount;
         bool canRefund = allocateParams.canRefund;
+        bool isShareRevenue = allocateParams.isShareRevenue;
         uint256 canRefundDuration = allocateParams.canRefundDuration;
         uint256 nonce = allocateParams.nonce;
 
@@ -113,6 +114,7 @@ contract VaultFacet is IVaultFacet, VaultBase, AccessControlBase, TTOQManagerBas
             userAddress,
             tokenAmount,
             paymentAmount,
+            isShareRevenue,
             canRefund,
             canRefundDuration,
             nonce
@@ -124,6 +126,7 @@ contract VaultFacet is IVaultFacet, VaultBase, AccessControlBase, TTOQManagerBas
             userAddress,
             tokenAmount,
             paymentAmount,
+            isShareRevenue,
             canRefund,
             canRefundDuration,
             nonce
@@ -139,8 +142,11 @@ contract VaultFacet is IVaultFacet, VaultBase, AccessControlBase, TTOQManagerBas
         if (canRefund == false) {
             s.userVotingPowerMap[userAddress] += tokenAmount;
             s.totalVotingPower += tokenAmount;
-            s.userShareProfitBalance[userAddress] += tokenAmount;
             s.withdrawablePaymentTokenMap[vault.paymentTokenAddress] += paymentAmount;
+            if (isShareRevenue) {
+                s.userShareRevenueBalance[userAddress] += tokenAmount;
+                s.totalShareRevenueAmount += tokenAmount;
+            }
         }
 
         emit TokenInvested(vaultId, userAddress, allocateParams, vault.operator);
@@ -244,8 +250,10 @@ contract VaultFacet is IVaultFacet, VaultBase, AccessControlBase, TTOQManagerBas
 
         s.userBalance[userAddress] -= amount;
 
-        if (schedule.isShareProfit) {
-            s.userShareProfitBalance[userAddress] -= amount;
+        if (schedule.isShareRevenue) {
+            s.userShareRevenueBalance[userAddress] -= amount;
+            s.totalShareRevenueAmount -= amount;
+            require(s.userShareRevenueBalance[userAddress] >= 0, "Insufficient userShareRevenueBalance");
         }
         vault.claimedAmount += amount;
 
@@ -269,7 +277,10 @@ contract VaultFacet is IVaultFacet, VaultBase, AccessControlBase, TTOQManagerBas
         _useNonce(userAddress, nonce);
         s.userVotingPowerMap[userAddress] += schedule.allocationAmount;
         s.totalVotingPower += schedule.allocationAmount;
-        s.userShareProfitBalance[userAddress] += schedule.allocationAmount;
+        if (schedule.isShareRevenue) {
+            s.userShareRevenueBalance[userAddress] += schedule.allocationAmount;
+            s.totalShareRevenueAmount += schedule.allocationAmount;
+        }
 
         Vault storage vault = s.vaultsMap[schedule.vaultId];
         s.withdrawablePaymentTokenMap[vault.paymentTokenAddress] += schedule.paymentAmount;
@@ -295,6 +306,8 @@ contract VaultFacet is IVaultFacet, VaultBase, AccessControlBase, TTOQManagerBas
         Vault storage vault = s.vaultsMap[schedule.vaultId];
 
         s.userInvestAmount[userAddress] -= schedule.allocationAmount;
+        s.totalInvestTokenAmount -= schedule.allocationAmount;
+
         // return user's payment
         require(vault.paymentAmount >= schedule.paymentAmount, "Insufficient payment balance");
         vault.paymentAmount -= schedule.paymentAmount;
@@ -358,8 +371,12 @@ contract VaultFacet is IVaultFacet, VaultBase, AccessControlBase, TTOQManagerBas
     }
 
     // The token balance that users can share profits with will decrease as users claim
-    function getShareProfitTokenBalance(address user) external view returns (uint256 amount) {
-        return s.userShareProfitBalance[user];
+    function getShareRevenueTokenBalance(address user) external view returns (uint256 amount) {
+        return s.userShareRevenueBalance[user];
+    }
+
+    function getTotalShareRevenueAmount() external view returns (uint256 amount) {
+        return s.totalShareRevenueAmount;
     }
 
     function getTotalInvestTokenAmount() external view returns (uint256 amount) {
