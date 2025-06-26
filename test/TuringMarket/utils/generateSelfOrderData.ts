@@ -6,7 +6,7 @@ export const generateSelfOrderData = async (data: any) => {
     const { maker, marketId, tradeType, paymentTokenAddress, feeTokenAddress, fee1TokenAddress, fee1RateBps, fee2TokenAddress, fee2RateBps } = data;
     const feeFacet = await getFacetWithSignerKey('TuringMarketApp', 'AdminFacet', 'nobody')
 
-    const paymentTokenAmount = ethers.utils.parseUnits(data.paymentTokenAmount, paymentTokenDecimals)
+    const paymentTokenAmount = parseUnits(data.paymentTokenAmount, paymentTokenDecimals)
     let fee1Amount = 0;
     if (fee1TokenAddress !== ethers.constants.AddressZero) {
         const rz = await feeFacet.getFeeTokenInfo(fee1TokenAddress);

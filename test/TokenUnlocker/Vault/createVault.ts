@@ -1,6 +1,7 @@
 import initData from '../utils/initData'
-
-describe('createVault', () => {
+const scope = getNameForTag(__dirname, __filename)
+const theDebug = require('debug')(scope)
+describe(scope, () => {
     before(() => initData())
 
     step('should create vault successed', async () => {

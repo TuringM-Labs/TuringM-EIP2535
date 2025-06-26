@@ -10,8 +10,8 @@ export const generateOrderData = async (
         salt: randomId(),
         maker,
         tokenId,
-        tokenAmount: ethers.utils.parseUnits(tokenAmount, tokenDecimals),
-        tokenPriceInPaymentToken: ethers.utils.parseUnits(tokenPriceInPaymentToken, paymentTokenDecimals),
+        tokenAmount: parseUnits(tokenAmount, tokenDecimals),
+        tokenPriceInPaymentToken: parseUnits(tokenPriceInPaymentToken, paymentTokenDecimals),
         paymentTokenAddress,
         slippageBps,
         deadline,
@@ -24,9 +24,9 @@ export const generateOrderData = async (
         exchangeNftAmount = theExchangeNftAmount;
     }
     let paymentTokenAmount = order.tokenPriceInPaymentToken.mul(exchangeNftAmount).div((10 ** tokenDecimals).toString());
-    let nftPairPaymentAmount = ethers.utils.parseUnits('1', paymentTokenDecimals).sub(order.tokenPriceInPaymentToken).mul(exchangeNftAmount).div((10 ** tokenDecimals).toString());
+    let nftPairPaymentAmount = parseUnits('1', paymentTokenDecimals).sub(order.tokenPriceInPaymentToken).mul(exchangeNftAmount).div((10 ** tokenDecimals).toString());
     if (takerPrice != '') {
-        paymentTokenAmount = ethers.utils.parseUnits(takerPrice, paymentTokenDecimals).mul(exchangeNftAmount).div((10 ** tokenDecimals).toString());
+        paymentTokenAmount = parseUnits(takerPrice, paymentTokenDecimals).mul(exchangeNftAmount).div((10 ** tokenDecimals).toString());
     }
     if (takerPaymentTokenAmount != '') {
         paymentTokenAmount = takerPaymentTokenAmount;

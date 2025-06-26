@@ -1,6 +1,6 @@
 import initData from './utils/initData'
 const scope = getNameForTag(__dirname, __filename)
-const theDebug = require('debug')(`test:${scope}`)
+const theDebug = require('debug')(scope)
 describe(scope, () => {
     let marketId = ''
     before(async () => {

@@ -1,5 +1,3 @@
-
-
 export const getVaultByType = async (type: string) => {
     const network = hre.network.name
     const file = path.resolve(__dirname, `../../../deployments/${network}-vault.json`)

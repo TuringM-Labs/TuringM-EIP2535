@@ -2,7 +2,7 @@ import initData from './utils/initData'
 import { generateOrderData } from './utils/generateOrderData'
 
 const scope = getNameForTag(__dirname, __filename)
-const theDebug = require('debug')(`test:${scope}`)
+const theDebug = require('debug')(scope)
 describe(scope, () => {
     // ### Scenario 2 - Normal transaction
     // * user1 buys 100 `A` and transfers 50 `C` to the exchange

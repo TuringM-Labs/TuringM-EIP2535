@@ -6,8 +6,8 @@ export default createInitData(async ({ deployments }) => {
     await deployments.fixture(['TuringMarket:99_All'])
     const marketId = randomId()
 
-    await faucetUsersStableCoin(10 ** 6);
-    await faucetUsersTUIT(10 ** 6);
+    await faucetUsersStableCoin(10 ** 5);
+    await faucetUsersTUIT(10 ** 3);
     await prepareMarket(marketId);
     await prepareUserOrder(marketId);
 

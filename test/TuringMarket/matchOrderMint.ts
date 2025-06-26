@@ -2,7 +2,7 @@ import initData from './utils/initData'
 import { generateOrderData } from './utils/generateOrderData'
 
 const scope = getNameForTag(__dirname, __filename)
-const theDebug = require('debug')(`test:${scope}`)
+const theDebug = require('debug')(scope)
 describe(scope, () => {
     let marketId = ''
     before(async () => {
@@ -855,8 +855,9 @@ describe(scope, () => {
         expect(onChainRemaining).to.be.equal(offChainRemaining)
     })
 
-    xstep(`taker order exceed maxFeeRateBps`)
-    xstep(`maker order exceed maxFeeRateBps`)
-    xstep(`taker do not have enough paymentToken`)
-    xstep(`maker do not have enough paymentToken`)
+    // TODO
+    // xstep(`taker order exceed maxFeeRateBps`)
+    // xstep(`maker order exceed maxFeeRateBps`)
+    // xstep(`taker do not have enough paymentToken`)
+    // xstep(`maker do not have enough paymentToken`)
 });

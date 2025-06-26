@@ -1,7 +1,7 @@
 import initData from './utils/initData'
 import { generateOrderData } from './utils/generateOrderData'
 const scope = getNameForTag(__dirname, __filename)
-const theDebug = require('debug')(`test:${scope}`)
+const theDebug = require('debug')(scope)
 describe(scope, () => {
     let marketId = ''
     before(async () => {
@@ -33,7 +33,7 @@ describe(scope, () => {
         const newBalance = await facetERC1155.balanceOf(takerOrder.maker, takerOrder.tokenId)
         expect(newBalance).to.be.equal(oldBalance.sub(takerOrder.exchangeNftAmount))
 
-        let takerShouldBurnAmount = ethers.utils.parseUnits('0', 1);
+        let takerShouldBurnAmount = parseUnits('0', 1);
 
         for (let i = 0; i < makerOrders.length; i++) {
             if (makerOrders[i].side == 0) {
