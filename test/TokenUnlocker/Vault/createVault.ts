@@ -11,7 +11,7 @@ describe(scope, () => {
         const operator = await getAccountByKey('projectReserve')
 
         const unlockedSince = Math.floor(Date.now() / 1000)
-        const unlockedDuration = 3600 * 24 * 30 * 12 * 4 // 4 year
+        const unlockedDuration = 3600 * 24 * 30 * 12 * 3 // 3 year
         const name = 'coFounders vault'
         const vaultId = await facet.getVaultsCount();
         const vaultType = 0n;
@@ -24,7 +24,7 @@ describe(scope, () => {
             totalDeposit: 0n,
             balance: 0n,
             totalPayout: 0n,
-            isShareProfit: false,
+            canShareRevenue: false,
             unlockedSince,
             unlockedDuration,
             paymentTokenAddress,

@@ -7,7 +7,9 @@ import {UserNonceStorage} from "./Storage.sol";
 abstract contract UserNonceBase is IUserNonceBase {
     function _useNonce(address userAddress, uint256 nonce) internal {
         UserNonceStorage.Storage storage $ = UserNonceStorage.load();
-        require(!$.userNonceMap[userAddress][nonce], "Nonce has been used");
+        if ($.userNonceMap[userAddress][nonce]) {
+            revert NonceHasBeenUsed(userAddress, nonce);
+        }
         $.userNonceMap[userAddress][nonce] = true;
         emit NonceUsed(userAddress, nonce);
     }
