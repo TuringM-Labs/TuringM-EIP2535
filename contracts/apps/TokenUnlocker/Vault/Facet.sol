@@ -15,7 +15,9 @@ contract VaultFacet is IVaultFacet, VaultBase, AccessControlBase, TTOQManagerBas
         _setFunctionAccess(this.adminUpdateVaultOperator.selector, roleA, true);
         // B Level Security role
         _setFunctionAccess(this.investToken.selector, roleB, true);
+        _setFunctionAccess(this.allocateLinearUnlockedTokens.selector, roleB, true);
         _setFunctionAccess(this.payoutToken.selector, roleB, true);
+        _setFunctionAccess(this.payoutTokenAndLinearUnlock.selector, roleB, true);
         _setFunctionAccess(this.claimUnlockedTokens.selector, roleB, true);
         _setFunctionAccess(this.quitInvestRefund.selector, roleB, true);
         _setFunctionAccess(this.doInvestRefund.selector, roleB, true);
@@ -35,19 +37,16 @@ contract VaultFacet is IVaultFacet, VaultBase, AccessControlBase, TTOQManagerBas
     }
 
     function adminUpdateVaultOperator(uint256 vaultId, address operator) external whenNotPaused protected {
-        require(0 <= vaultId && vaultId < s.vaultsCount, "Invalid vault id");
+        require(vaultId < s.vaultsCount, "Invalid vault id");
         s.vaultsMap[vaultId].operator = operator;
         emit VaultOperatorUpdated(vaultId, operator);
     }
 
     function createVault(Vault memory vault_) external whenNotPaused protected nonReentrant returns (uint256 vaultId) {
         address paymentTokenAddress = address(0);
-        bool canShareRevenue = false;
         if (vault_.vaultType == VaultType.Vc) {
-            // TODO: use a whiteList payment token address?
             require(vault_.paymentTokenAddress != address(0), "Invalid payment token address");
             paymentTokenAddress = vault_.paymentTokenAddress;
-            canShareRevenue = true;
         }
         Vault memory vault = Vault({
             name: vault_.name,
@@ -60,7 +59,7 @@ contract VaultFacet is IVaultFacet, VaultBase, AccessControlBase, TTOQManagerBas
             // payout
             totalPayout: 0, // How many tokens are spent
             // vc
-            canShareRevenue: canShareRevenue, // Is it the token share of the profit that vc invested in
+            canShareRevenue: vault_.canShareRevenue, // Is it the token share of the profit that vc invested in
             unlockedSince: vault_.unlockedSince, // This is just the calculation time starting point, not the unlocking time starting point. The unlocking time starting point is this time + 365 days
             unlockedDuration: vault_.unlockedDuration, // 365*4 days;
             paymentTokenAddress: paymentTokenAddress, // Payment token address, only for Vc vault type
@@ -77,7 +76,7 @@ contract VaultFacet is IVaultFacet, VaultBase, AccessControlBase, TTOQManagerBas
     }
 
     function depositToken(uint256 vaultId, uint256 amount) external protected whenNotPaused nonReentrant {
-        require(0 <= vaultId && vaultId < s.vaultsCount, "Invalid vault id");
+        require(vaultId < s.vaultsCount, "Invalid vault id");
         Vault storage vault = s.vaultsMap[vaultId];
         require(IERC20(vault.tokenAddress).transferFrom(msg.sender, address(this), amount), "Transfer failed");
         vault.balance += amount;
@@ -107,6 +106,7 @@ contract VaultFacet is IVaultFacet, VaultBase, AccessControlBase, TTOQManagerBas
         vault.balance -= tokenAmount;
         vault.allocatedAmount += tokenAmount;
         vault.paymentAmount += paymentAmount;
+        _useNonce(vault.operator, nonce);
 
         bytes memory encodedDataUser = abi.encode(
             TYPEHASH_INVEST_USER,
@@ -216,6 +216,35 @@ contract VaultFacet is IVaultFacet, VaultBase, AccessControlBase, TTOQManagerBas
         emit TokenPaid(vaultId, to, amount, reason, nonce, vault.operator);
     }
 
+    function payoutTokenAndLinearUnlock(
+        AllocateParams memory allocateParams,
+        string memory reason,
+        bytes memory operatorSig
+    ) external protected whenNotPaused nonReentrant {
+        _isPayoutDisabled();
+        uint256 vaultId = allocateParams.vaultId;
+        address userAddress = allocateParams.userAddress;
+        uint256 tokenAmount = allocateParams.tokenAmount;
+        require(allocateParams.paymentAmount == 0, "Payment amount should be zero");
+        require(allocateParams.canRefund == false, "Can refund should be false");
+        require(allocateParams.canRefundDuration == 0, "Can refund duration should be zero");
+
+        uint256 nonce = allocateParams.nonce;
+        _validateVault(vaultId, VaultType.Payout);
+
+        Vault storage vault = s.vaultsMap[vaultId];
+        _useNonce(vault.operator, nonce);
+        require(vault.balance >= tokenAmount, "Insufficient balance");
+        vault.balance -= tokenAmount;
+        vault.totalPayout += tokenAmount;
+
+        bytes memory encodedDataOperator = abi.encode(TYPEHASH_PAYOUT_AND_LOCK, vaultId, userAddress, tokenAmount, keccak256(bytes(reason)), nonce);
+        _verifySignature(vault.operator, operatorSig, encodedDataOperator);
+        _tokenTransferOutQuoteCheck("payoutToken", vault.tokenAddress, tokenAmount);
+        _allocateTokens(allocateParams);
+        emit TokenPaid(vaultId, userAddress, tokenAmount, reason, nonce, vault.operator);
+    }
+
     function claimUnlockedTokens(
         uint256 scheduleId,
         uint256 amount,
@@ -223,7 +252,7 @@ contract VaultFacet is IVaultFacet, VaultBase, AccessControlBase, TTOQManagerBas
         bytes memory userSig
     ) external protected whenNotPaused nonReentrant {
         _isPayoutDisabled();
-        require(0 <= scheduleId && scheduleId < s.unlockedSchedulesCount, "Invalid schedule id");
+        require(scheduleId < s.unlockedSchedulesCount, "Invalid schedule id");
         UnlockedSchedule storage schedule = s.unlockedSchedulesMap[scheduleId];
         require(schedule.hasRefunded == false, "Schedule already refunded");
 
@@ -237,7 +266,8 @@ contract VaultFacet is IVaultFacet, VaultBase, AccessControlBase, TTOQManagerBas
         require(availableAmount > 0 && availableAmount >= amount, "Insufficient availableAmount");
 
         // calculate canClaimAmount
-        uint256 canUnlockedAmount = _calcCanUnlockedAmount(schedule);
+        uint256 timestamp = block.timestamp;
+        uint256 canUnlockedAmount = _calcCanUnlockedAmount(schedule, timestamp);
         uint256 canClaimAmount = canUnlockedAmount - schedule.claimedAmount;
         require(canClaimAmount >= amount, "Insufficient canClaimAmount");
         schedule.claimedAmount += amount;
@@ -265,7 +295,7 @@ contract VaultFacet is IVaultFacet, VaultBase, AccessControlBase, TTOQManagerBas
 
     // user want to quit invest refund, so user can claim profit and have voting power for the investment
     function quitInvestRefund(uint256 scheduleId, uint256 nonce, bytes memory userSig) external protected whenNotPaused nonReentrant {
-        require(0 <= scheduleId && scheduleId < s.unlockedSchedulesCount, "Invalid schedule id");
+        require(scheduleId < s.unlockedSchedulesCount, "Invalid schedule id");
         UnlockedSchedule storage schedule = s.unlockedSchedulesMap[scheduleId];
         require(schedule.canRefund == true, "This investment is non-refundable");
         schedule.canRefund = false;
@@ -288,7 +318,7 @@ contract VaultFacet is IVaultFacet, VaultBase, AccessControlBase, TTOQManagerBas
 
     function doInvestRefund(uint256 scheduleId, uint256 nonce, bytes memory userSig) external protected whenNotPaused nonReentrant {
         _isPayoutDisabled();
-        require(0 <= scheduleId && scheduleId < s.unlockedSchedulesCount, "Invalid schedule id");
+        require(scheduleId < s.unlockedSchedulesCount, "Invalid schedule id");
         UnlockedSchedule storage schedule = s.unlockedSchedulesMap[scheduleId];
         require(schedule.hasRefunded == false, "This investment has already been refunded");
         schedule.hasRefunded = true;
@@ -349,16 +379,21 @@ contract VaultFacet is IVaultFacet, VaultBase, AccessControlBase, TTOQManagerBas
         schedules = new UnlockedSchedule[](end - start);
         for (uint256 i = start; i < end; i++) {
             uint256 scheduleIndex = scheduleIds[i];
-            require(scheduleIndex >= 0 && scheduleIndex < s.unlockedSchedulesCount, "Invalid schedule ID");
+            require(scheduleIndex < s.unlockedSchedulesCount, "Invalid schedule ID");
             schedules[i - start] = s.unlockedSchedulesMap[scheduleIndex];
         }
 
         return (schedules, count);
     }
 
-    function getUnlockedSchedule(uint256 scheduleId) external view returns (UnlockedSchedule memory) {
-        require(scheduleId >= 0 && scheduleId < s.unlockedSchedulesCount, "Invalid schedule ID");
-        return s.unlockedSchedulesMap[scheduleId];
+    function getUnlockedSchedule(
+        uint256 scheduleId,
+        uint256 timestamp
+    ) external view returns (UnlockedSchedule memory schedule, uint256 canUnlockedAmount) {
+        require(scheduleId < s.unlockedSchedulesCount, "Invalid schedule ID");
+        schedule = s.unlockedSchedulesMap[scheduleId];
+        canUnlockedAmount = _calcCanUnlockedAmount(schedule, timestamp);
+        return (schedule, canUnlockedAmount);
     }
 
     function getInvestAmount(address user) external view returns (uint256 amount) {
@@ -383,7 +418,15 @@ contract VaultFacet is IVaultFacet, VaultBase, AccessControlBase, TTOQManagerBas
         return s.totalInvestTokenAmount;
     }
 
+    function getWithdrawablePaymentTokenAmount(address tokenAddress) external view returns (uint256 amount) {
+        return s.withdrawablePaymentTokenMap[tokenAddress];
+    }
+
     function getVaultsCount() external view returns (uint256 count) {
         return s.vaultsCount;
+    }
+
+    function getUnlockedSchedulesCount() external view returns (uint256 count) {
+        return s.unlockedSchedulesCount;
     }
 }

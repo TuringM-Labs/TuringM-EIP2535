@@ -11,6 +11,10 @@ contract EIP712Facet is IEIP712Facet, IERC5267, EIP712Base, Facet {
         _setEIP712Config(name, version);
     }
 
+    function setEIP712Config(string memory name, string memory version) external {
+        _setEIP712Config(name, version);
+    }
+
     /// @inheritdoc IERC5267
     function eip712Domain()
         external

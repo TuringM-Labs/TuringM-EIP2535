@@ -36,6 +36,7 @@ contract AppStorage is IAppStorage {
     Storage internal s;
     // TYPEHASH
     bytes32 constant TYPEHASH_PAYOUT = keccak256("Payout(uint256 vaultId,address to,uint256 amount,string reason,uint256 nonce)");
+    bytes32 constant TYPEHASH_PAYOUT_AND_LOCK = keccak256("PayoutAndLock(uint256 vaultId,address to,uint256 amount,string reason,uint256 nonce)");
     bytes32 constant TYPEHASH_CLAIM_UNLOCKED_TOKEN = keccak256("ClaimUnlockedToken(uint256 scheduleId,uint256 amount,uint256 nonce)");
     bytes32 constant TYPEHASH_ALLOCATE_LINEAR_UNLOCKED_TOKENS =
         keccak256(

@@ -7,8 +7,7 @@ import {EIP712Base} from "../../../facets/EIP712/Base.sol";
 import {UserNonceBase} from "../../../facets/UserNonce/Base.sol";
 
 abstract contract VaultBase is AppStorage, IVaultBase, UserNonceBase, EIP712Base {
-    function _calcCanUnlockedAmount(UnlockedSchedule memory schedule) internal view returns (uint256) {
-        uint256 timestamp = block.timestamp;
+    function _calcCanUnlockedAmount(UnlockedSchedule memory schedule, uint256 timestamp) internal pure returns (uint256) {
         if (schedule.canRefund) {
             return 0;
         }
@@ -41,7 +40,7 @@ abstract contract VaultBase is AppStorage, IVaultBase, UserNonceBase, EIP712Base
     }
 
     function _validateVault(uint256 vaultId, VaultType vaultType) internal view {
-        require(0 <= vaultId && vaultId < s.vaultsCount, "Invalid vault id");
+        require(vaultId < s.vaultsCount, "Invalid vault id");
         require(s.vaultsMap[vaultId].vaultType == vaultType, "Invalid vault type");
     }
 

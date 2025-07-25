@@ -75,8 +75,7 @@ abstract contract Pausable {
      * @dev Returns true if the contract is paused, and false otherwise.
      */
     function _paused() internal view returns (bool) {
-        PausableStorage storage $ = _getPausableStorage();
-        return $._paused;
+        return _getPausableStorage()._paused;
     }
 
     /**

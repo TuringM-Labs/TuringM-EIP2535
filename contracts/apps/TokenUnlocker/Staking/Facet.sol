@@ -6,11 +6,10 @@ import {Facet} from "../../../Facet.sol";
 import {StakingBase} from "./Base.sol";
 import {VoteBase} from "../Vote/Base.sol";
 import {IStakingFacet} from "./IFacet.sol";
-import {UserNonceBase} from "../../../facets/UserNonce/Base.sol";
 import {TTOQManagerBase} from "../../../facets/TTOQManager/Base.sol";
 import {AccessControlBase} from "../../../facets/AccessControl/Base.sol";
 
-contract StakingFacet is IStakingFacet, StakingBase, VoteBase, AccessControlBase, UserNonceBase, TTOQManagerBase, Facet {
+contract StakingFacet is IStakingFacet, StakingBase, VoteBase, AccessControlBase, TTOQManagerBase, Facet {
     function StakingFacet_init(uint8 roleA, uint8 roleB, uint8 roleC) external onlyInitializing {
         // A level
         _setFunctionAccess(this.setStakingToken.selector, roleA, true);
@@ -39,7 +38,8 @@ contract StakingFacet is IStakingFacet, StakingBase, VoteBase, AccessControlBase
         require(amount > 0, "Amount must be greater than 0");
         _useNonce(userAddress, nonce);
 
-        _verifySignature(userAddress, userSig, abi.encode(TYPEHASH_STAKE, userAddress, tokenAddress, amount, nonce));
+        bytes memory encodedStakeData = abi.encode(TYPEHASH_STAKE, userAddress, tokenAddress, amount, nonce);
+        _verifySignature(userAddress, userSig, encodedStakeData);
         require(IERC20(tokenAddress).transferFrom(userAddress, address(this), amount), "Transfer token into staking contract failed");
 
         s.totalStakingAmountMap[tokenAddress] += amount;
@@ -61,8 +61,7 @@ contract StakingFacet is IStakingFacet, StakingBase, VoteBase, AccessControlBase
     }
 
     function unstake(uint256 scheduleIndex, uint256 nonce, bytes memory userSig) external whenNotPaused protected nonReentrant {
-        _isPayoutDisabled();
-        require(0 <= scheduleIndex && scheduleIndex < s.stakeSchedulesCount, "Invalid schedule index");
+        require(scheduleIndex < s.stakeSchedulesCount, "Invalid schedule index");
 
         StakeSchedule storage schedule = s.stakeSchedulesMap[scheduleIndex];
         address userAddress = schedule.userAddress;
@@ -75,7 +74,6 @@ contract StakingFacet is IStakingFacet, StakingBase, VoteBase, AccessControlBase
         require(schedule.isUnstaked == false, "Stake has been unstaked");
         schedule.isUnstaked = true;
 
-        _tokenTransferOutQuoteCheck("unstake", tokenAddress, amount);
         require(IERC20(tokenAddress).transfer(userAddress, amount), "Transfer failed");
         s.totalStakingAmountMap[tokenAddress] -= amount;
         s.userStakingAmountMap[tokenAddress][userAddress] -= amount;
@@ -101,6 +99,10 @@ contract StakingFacet is IStakingFacet, StakingBase, VoteBase, AccessControlBase
 
     function getUserStakeScheduleIds(address userAddress) external view returns (uint256[] memory) {
         return s.userStakeScheduleIdsMap[userAddress];
+    }
+
+    function getStakeSchedulesCount() external view returns (uint256) {
+        return s.stakeSchedulesCount;
     }
 
     function isStakingToken(address tokenAddress) external view returns (bool) {
