@@ -12,7 +12,6 @@ export const faucetUsersTUIT = async amount => {
     let nonce = 0
     amount = parseEther(amount.toString())
 
-    // 当前硬编码为50个用户
     for (let i = 0; i < userCount; i++) {
         const user = users[i];
         
