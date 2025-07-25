@@ -87,7 +87,7 @@ abstract contract ERC1155Base is IERC1155Base {
     ) internal returns (bool) {
         if (_hasContract(to_)) {
             try IERC1155Receiver(to_).onERC1155BatchReceived(msg.sender, from_, tokenIDs_, amounts_, data_) returns (bytes4 retval) {
-                return retval == IERC1155Receiver.onERC1155Received.selector;
+                return retval == IERC1155Receiver.onERC1155BatchReceived.selector;
             } catch (bytes memory reason) {
                 if (reason.length == 0) {
                     revert("ERC1155: transfer to non ERC1155Receiver implementer");

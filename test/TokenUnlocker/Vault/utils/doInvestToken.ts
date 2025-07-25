@@ -59,7 +59,9 @@ export const doInvestToken = async (userAddress, payoutKey, tokenAmount, payment
 
     return {
         facet,
+        paymentAmount,
         paymentTokenAddress,
+        tokenAmount,
         tokenAddress,
         tokenAllocatedArgs,
         tokenInvestedArgs,

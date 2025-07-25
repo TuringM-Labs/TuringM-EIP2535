@@ -36,14 +36,13 @@ contract VoteFacet is IVoteFacet, VoteBase, AccessControlBase, UserNonceBase, Fa
         uint256 noVotes = params.noVotes;
         uint256 nonce = params.nonce;
 
-        require(0 <= proposalId && proposalId < s.proposalsCount, "Invalid proposal id");
+        require(proposalId < s.proposalsCount, "Invalid proposal id");
         Proposal storage proposal = s.proposalsMap[proposalId];
         uint256 startTime = proposal.startTime;
         uint256 duration = proposal.duration;
         require(startTime + duration > block.timestamp, "Voting period has ended");
 
         _useNonce(userAddress, nonce);
-        require(yesVotes >= 0 && noVotes >= 0, "yes and no votes must be non-negative");
         require(s.userVotedProposalMap[userAddress][proposalId] == false, "User has already voted on this proposal");
         s.userVotedProposalMap[userAddress][proposalId] = true;
         _verifySignature(userAddress, userSig, abi.encode(TYPEHASH_VOTE, proposalId, userAddress, yesVotes, noVotes, nonce));
@@ -86,5 +85,9 @@ contract VoteFacet is IVoteFacet, VoteBase, AccessControlBase, UserNonceBase, Fa
 
     function getShouldSyncPendingVotingPowerFromStakeScheduleIds(address userAddress) external view returns (uint256[] memory ids) {
         return _getShouldSyncPendingVotingPowerFromStakeScheduleIds(userAddress);
+    }
+
+    function getProposalsCount() external view returns (uint256) {
+        return s.proposalsCount;
     }
 }

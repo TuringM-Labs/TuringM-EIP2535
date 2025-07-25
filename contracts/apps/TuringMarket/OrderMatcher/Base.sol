@@ -135,7 +135,15 @@ abstract contract OrderMatcherBase is IOrderMatcherBase, AppStorage, ERC1155Base
                 revert TakerPaymentNotValidate(takerOrder.salt, takerAlreadyReceivedPayment, takerOrder.paymentTokenAmount);
             if (takerOrder.exchangeNftAmount != takerAlreadySendNft)
                 revert TakerNFTSendOutNotValidate(takerOrder.salt, takerOrder.exchangeNftAmount, takerAlreadySendNft);
-            IERC20(takerOrder.paymentTokenAddress).transfer(takerOrder.maker, takerOrder.paymentTokenAmount);
+            bool paymentResult = IERC20(takerOrder.paymentTokenAddress).transfer(takerOrder.maker, takerOrder.paymentTokenAmount);
+            if (!paymentResult)
+                revert PaymentTransferFailed(
+                    takerOrder.salt,
+                    address(this),
+                    takerOrder.maker,
+                    takerOrder.paymentTokenAddress,
+                    takerOrder.paymentTokenAmount
+                );
         }
         if (takerOrder.side == OrderSide.buy) {
             if (takerOrder.paymentTokenAmount != takerShouldPay)

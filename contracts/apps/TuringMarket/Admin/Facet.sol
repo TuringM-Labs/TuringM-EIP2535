@@ -34,7 +34,7 @@ contract AdminFacet is IAdminFacet, AdminBase, AccessControlBase, TTOQManagerBas
         require(s.feeTokenAddressMap[profitTokenAddress], "fee token not enabled");
         require(brokerageAmount > 0 && revenueAmount > 0, "Amount must be greater than 0");
 
-        uint256 amount = s.feeVaultProfitDistributedAmountMap[profitTokenAddress] + brokerageAmount + revenueAmount;
+        uint256 amount = s.feeVaultProfitDistributedAmountMap[profitTokenAddress] + brokerageAmount + revenueAmount + rewardFeeAmount;
         require(s.feeVaultAmountMap[profitTokenAddress] >= amount, "Insufficient fee vault balance");
         s.feeVaultProfitDistributedAmountMap[profitTokenAddress] = amount;
 
