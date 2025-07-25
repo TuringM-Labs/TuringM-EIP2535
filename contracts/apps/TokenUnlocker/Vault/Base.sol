@@ -12,7 +12,7 @@ abstract contract VaultBase is AppStorage, IVaultBase, UserNonceBase, EIP712Base
             return 0;
         }
         // The first year is locked
-        uint256 unlockingStartTime = schedule.startTime + 365 days;
+        uint256 unlockingStartTime = schedule.startTime + 360 days;
         if (unlockingStartTime > timestamp) {
             return 0;
         }

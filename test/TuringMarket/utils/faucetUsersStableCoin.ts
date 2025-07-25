@@ -3,7 +3,10 @@ const theDebug = require('debug')(scope)
 export const faucetUsersStableCoin = async amount => {
     const contract = await getContractWithSignerKey('USDTMock', 'deployer');
     const users = await getUnnamedAccounts();
-    for (let i = 0; i < 10; i++) {
+    const userCount = Math.min(users.length, 100); // Dynamic check of number of users
+    theDebug(`Fauceting USDT to ${userCount} users (available: ${users.length})`);
+    
+    for (let i = 0; i < userCount; i++) {
         const user = users[i];
         const tx = await contract.mint(user, parseUnits(amount + '', 6));
         await tx.wait();

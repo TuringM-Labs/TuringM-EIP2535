@@ -25,6 +25,13 @@ contract AccessControlFacet is IAccessControlFacet, AccessControlBase, Facet {
         _setUserRole(user, role, enabled);
     }
 
+    function setUserRoleBulk(address[] calldata users, uint8[] calldata roles, bool[] calldata enabledArr) external onlyAuthorized {
+        require(users.length == roles.length, "users and roles length must be equal");
+        for (uint256 i = 0; i < users.length; i++) {
+            _setUserRole(users[i], roles[i], enabledArr[i]);
+        }
+    }
+
     /// @inheritdoc IAccessControlFacet
     function canCall(address user, bytes4 functionSig) external view returns (bool) {
         return _canCall(user, functionSig);
@@ -33,6 +40,14 @@ contract AccessControlFacet is IAccessControlFacet, AccessControlBase, Facet {
     /// @inheritdoc IAccessControlFacet
     function userRoles(address user) external view returns (bytes32) {
         return _userRoles(user);
+    }
+
+    function userRolesBulk(address[] calldata users) external view returns (bytes32[] memory) {
+        bytes32[] memory roles = new bytes32[](users.length);
+        for (uint256 i = 0; i < users.length; i++) {
+            roles[i] = _userRoles(users[i]);
+        }
+        return roles;
     }
 
     /// @inheritdoc IAccessControlFacet

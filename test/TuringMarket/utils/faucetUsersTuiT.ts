@@ -6,10 +6,14 @@ export const faucetUsersTUIT = async amount => {
     const tuit = await getContractWithSignerKey('TuringToken', 'nobody')
     const facet = await getFacetWithSignerKey('TokenUnlockerApp', 'VaultFacet', 'vaultRoleB')
     const users = await getUnnamedAccounts();
+    const userCount = Math.min(users.length, 100); // Dynamic check of number of users
+    theDebug(`Fauceting TUIT to ${userCount} users (available: ${users.length})`);
+    
     let nonce = 0
     amount = parseEther(amount.toString())
 
-    for (let i = 0; i < 10; i++) {
+    // 当前硬编码为50个用户
+    for (let i = 0; i < userCount; i++) {
         const user = users[i];
         
         const payoutkey = 'ecosystemDevelopment'
