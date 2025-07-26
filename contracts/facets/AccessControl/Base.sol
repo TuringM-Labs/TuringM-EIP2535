@@ -36,7 +36,6 @@ abstract contract AccessControlBase is IAccessControlBase {
         } else {
             AccessControlStorage.load().userRoles[user] &= ~bytes32(1 << role);
         }
-
         emit UserRoleUpdated(user, role, enabled);
     }
 

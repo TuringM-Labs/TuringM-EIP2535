@@ -11,7 +11,6 @@ export const doInvestToken = async (userAddress, payoutKey, tokenAmount, payment
     const tokenAddress = vault.tokenAddress
     tokenAmount = parseEther(tokenAmount.toString())
     paymentAmount = parseUnits(paymentAmount.toString(), 6)
-
     const nonce = hre.useNonce()
     const typeDataUser = getConfig('TYPEHASH_INVEST_USER')
     const typeDataOperator = getConfig('TYPEHASH_INVEST_OPERATOR')

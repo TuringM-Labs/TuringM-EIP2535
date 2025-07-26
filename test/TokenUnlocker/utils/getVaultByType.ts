@@ -1,6 +1,6 @@
 export const getVaultByType = async (type: string) => {
     const network = hre.network.name
-    const file = path.resolve(__dirname, `../../../deployments/${network}-vault.json`)
+    const file = path.resolve(__dirname, `../../../deployments/${network}-data/vault.json`)
     const vaultDataArr = require(file)
 
     const vaultType = getConfig('VaultType')[type]

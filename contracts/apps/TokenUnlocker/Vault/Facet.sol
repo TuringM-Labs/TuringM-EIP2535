@@ -61,7 +61,7 @@ contract VaultFacet is IVaultFacet, VaultBase, AccessControlBase, TTOQManagerBas
             // vc
             canShareRevenue: vault_.canShareRevenue, // Is it the token share of the profit that vc invested in
             unlockedSince: vault_.unlockedSince, // This is just the calculation time starting point, not the unlocking time starting point. The unlocking time starting point is this time + 365 days
-            unlockedDuration: vault_.unlockedDuration, // 365*4 days;
+            unlockedDuration: vault_.unlockedDuration, // 360*3 days;
             paymentTokenAddress: paymentTokenAddress, // Payment token address, only for Vc vault type
             allocatedAmount: 0, // total allocated token amount
             paymentAmount: 0, // vc pay StableCoin, get token, this is the total income in StableCoin, not token
@@ -97,7 +97,8 @@ contract VaultFacet is IVaultFacet, VaultBase, AccessControlBase, TTOQManagerBas
         bool isShareRevenue = allocateParams.isShareRevenue;
         uint256 canRefundDuration = allocateParams.canRefundDuration;
         uint256 nonce = allocateParams.nonce;
-
+        require(tokenAmount > 0 && paymentAmount > 0, "Invalid token amount or payment amount");
+        require(tokenAmount <= paymentAmount * 2 * 1e13, "Token price must be at least 0.05");
         _useNonce(userAddress, nonce);
         _validateVault(vaultId, VaultType.Vc);
 
@@ -164,6 +165,8 @@ contract VaultFacet is IVaultFacet, VaultBase, AccessControlBase, TTOQManagerBas
         uint256 canRefundDuration = allocateParams.canRefundDuration;
         uint256 nonce = allocateParams.nonce;
 
+        require(userAddress != address(0), "User address should not be zero address");
+        require(tokenAmount > 0, "Token amount should be greater than zero");
         require(paymentAmount == 0, "Payment amount should be zero");
         require(canRefund == false, "Can refund should be false");
 

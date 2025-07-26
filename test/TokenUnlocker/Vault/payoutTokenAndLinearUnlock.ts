@@ -3,7 +3,7 @@ import { getVaultByKey } from '../utils/getVaultByKey'
 
 const scope = getNameForTag(__dirname, __filename)
 const theDebug = require('debug')(scope)
-describe.only(scope, () => {
+describe(scope, () => {
     before(() => initData())
 
     step('should payout and linear unlocked successed', async () => {

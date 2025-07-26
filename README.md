@@ -43,7 +43,7 @@ The contracts are designed to be modular, upgradeable, and gas-efficient while m
 
 ## Audit
 
-These contracts have been audited by xxxx and the report is available [here](./audit/xxx.pdf).
+These contracts have been audited by QuillAudits and the report is available [here](https://www.quillaudits.com/leaderboard/turingm).
 
 ## Deployments
 
