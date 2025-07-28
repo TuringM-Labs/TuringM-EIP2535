@@ -47,10 +47,9 @@ These contracts have been audited by QuillAudits and the report is available [he
 
 ## Deployments
 
-| Network          | Address                                                                           |
+### Avalanche Network C-Chain
+
+| Contract          | Address                                                                           |
 | ---------------- | --------------------------------------------------------------------------------- |
-| testnet 1          | [#](https://testnet-scan.com/address/#)|
-
-
-## Notices
-Currently we do not provide full project testcases/docs yet, after we launch our project and get target users, we will release our testcases/docs.
+| TokenUnlockerApp     | [0x497459342607061E1F2F95984D605a20D4DB3731](https://snowtrace.io/address/0x497459342607061E1F2F95984D605a20D4DB3731)|
+| TuringToken          | [0x8604AA227A00F48CCa7b096eF8853d0F6d3325F3](https://snowtrace.io/address/0x8604AA227A00F48CCa7b096eF8853d0F6d3325F3)|
