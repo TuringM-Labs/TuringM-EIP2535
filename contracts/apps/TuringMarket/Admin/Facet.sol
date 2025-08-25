@@ -71,9 +71,8 @@ contract AdminFacet is IAdminFacet, AdminBase, AccessControlBase, TTOQManagerBas
         require(s.feeTokenAddressMap[feeTokenAddress], "Fee token not enabled");
         require(amount > 0, "Amount must be greater than 0");
 
-        uint256 newProfitVaultBalance = s.profitVaultMap[payoutType][feeTokenAddress] - amount;
-        require(newProfitVaultBalance >= 0, "Insufficient fee vault balance");
-        s.profitVaultMap[payoutType][feeTokenAddress] = newProfitVaultBalance;
+        require(s.profitVaultMap[payoutType][feeTokenAddress] >= amount, "Insufficient fee vault balance");
+        s.profitVaultMap[payoutType][feeTokenAddress] = s.profitVaultMap[payoutType][feeTokenAddress] - amount;
 
         _tokenTransferOutQuoteCheck("doPayoutVault", feeTokenAddress, amount);
         s.totalPayoutMap[feeTokenAddress] += amount;

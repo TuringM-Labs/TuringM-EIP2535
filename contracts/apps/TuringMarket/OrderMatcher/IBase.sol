@@ -85,18 +85,6 @@ interface IOrderMatcherBase is IAppStorage {
     error TakerNFTReceivedNotValidate(uint256 orderSalt, uint256 takerShouldMint, uint256 takerMint);
     error TakerNFTSendOutNotValidate(uint256 orderSalt, uint256 takerShouldSend, uint256 takerSend);
     error MintNFTAmountNotEqual(uint256 orderSalt, uint256 nftAmount, uint256 nftPairAmount);
-    error InvalidUserWalletWithdrawNonce(address from, uint256 inputNonce, uint256 nonce);
-    error InvalidWithdrawSignature(
-        address signer,
-        address from,
-        address to,
-        uint256 amount,
-        uint256 fee,
-        address tokenAddress,
-        uint256 nonce,
-        bytes sig
-    );
-    error TransferFailed(address tokenAddress, address from, address to, uint256 amount);
     error InvalidPaymentToken(uint256 orderSalt, address paymentTokenAddress);
     error InvalidOrderSide(uint256 orderSalt, OrderSide expectSide, OrderSide orderSide);
     error InvalidSlippage(uint256 orderSalt, uint256 orderSlippage, uint256 maxSlippage);

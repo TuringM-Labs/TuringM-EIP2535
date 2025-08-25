@@ -50,4 +50,5 @@ contract AppStorage is IAppStorage {
         );
 
     bytes32 constant TYPEHASH_REWARD = keccak256("Reward(uint256 marketId,uint256 nftId, address user,address paymentTokenAddress,uint256 nonce)");
+    bytes32 constant TYPEHASH_WITHDRAW = keccak256("Withdraw(address from,address to,address tokenAddress,uint256 amount,uint256 nonce)");
 }
