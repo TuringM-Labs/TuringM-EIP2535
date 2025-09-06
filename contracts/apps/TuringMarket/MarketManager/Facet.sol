@@ -17,10 +17,30 @@ contract MarketManagerFacet is Facet, AccessControlBase, MarketManagerBase, TTOQ
         _setFunctionAccess(this.endMarket.selector, roleB, true);
         _setFunctionAccess(this.finalizeMarket.selector, roleB, true);
         _setFunctionAccess(this.createMarket.selector, roleB, true);
+        _setFunctionAccess(this.withdrawToken.selector, roleB, true);
 
         _setFunctionAccess(this.blockMarket.selector, roleC, true);
 
         _addInterface(type(IMarketManagerFacet).interfaceId);
+    }
+
+    function withdrawToken(
+        address from,
+        address to,
+        address tokenAddress,
+        uint256 amount,
+        uint256 nonce,
+        bytes memory userSig
+    ) external whenNotPaused protected nonReentrant {
+        require(tokenAddress != address(0), "Invalid token address");
+        require(to != address(0), "Invalid to address");
+        _useNonce(from, nonce);
+
+        bytes memory encodedData = abi.encode(TYPEHASH_WITHDRAW, from, to, tokenAddress, amount, nonce);
+        _verifySignature(from, userSig, encodedData);
+        require(IERC20(tokenAddress).transferFrom(from, address(this), amount), "TransferFrom failed");
+        require(IERC20(tokenAddress).transfer(to, amount), "TransferTo failed");
+        emit TokenWithdrawn(from, to, tokenAddress, amount);
     }
 
     function claimReward(Reward memory reward) external whenNotPaused protected nonReentrant {
