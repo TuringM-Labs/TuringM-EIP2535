@@ -53,6 +53,7 @@ These contracts have been audited by QuillAudits and the report is available [he
 | ---------------- | --------------------------------------------------------------------------------- |
 | TokenUnlockerApp     | [0x497459342607061E1F2F95984D605a20D4DB3731](https://snowtrace.io/address/0x497459342607061E1F2F95984D605a20D4DB3731)|
 | TuringToken          | [0x8604AA227A00F48CCa7b096eF8853d0F6d3325F3](https://snowtrace.io/address/0x8604AA227A00F48CCa7b096eF8853d0F6d3325F3)|
+| TuringMarketApp     | [0x2a4d11972e2146bBb18572C886c8EFb776651544](https://snowtrace.io/address/0x2a4d11972e2146bBb18572C886c8EFb776651544)|
 
 ## Links
 
